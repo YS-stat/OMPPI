@@ -63,7 +63,7 @@ The processed input data required to run the two LLM evaluation experiments are 
 - `functional_correctness/data/humaneval_plus_generated_outputs_final.csv`: generated completions with precomputed full and partial HumanEval+ evaluation outcomes.
 - `functional_correctness/data/data_config.json`: configuration metadata for the functional-correctness input table.
 
-The released functional-correctness scripts use precomputed evaluator outputs and do not execute generated code. The implementation used to generate the raw input data is available from the authors upon request. Users should also comply with the terms of the original benchmarks and model outputs.
+The implementation used to generate the raw input data is available from the authors upon request. Users should also comply with the terms of the original benchmarks and model outputs.
 
 ## Reproducing the experiments
 
