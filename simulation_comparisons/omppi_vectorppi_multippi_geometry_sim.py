@@ -1,5 +1,5 @@
 """
-OMPPI vs VectorPPI++ vs MultiPPI geometry simulation.
+OMPPI vs VectorPPI++ vs MultiPPI controlled covariance-perturbation analysis.
 
 Output:
     omppi_vectorppi_multippi_sim_outputs/simulation_summary.csv
@@ -10,8 +10,12 @@ Notes:
     - VectorPPI++ uses the full predictor vector as a single multivariate surrogate.
     - MultiPPI uses the original continuous single-budget allocation over
       one fully labeled subset and all nonempty predictor-only subsets.
-    - The perturbation severity q is restricted to [0, 0.6] to keep the
-      worst-direction path in the local perturbation regime.
+    - The default comparison adds the opposite pure-correlation perturbation
+      direction to the original pure-correlation and full-covariance cases.
+      All cases share the original true covariances, costs, budget and q grid.
+    - These are conditional Gaussian variance calculations, not repeated
+      initial-sample simulations. Use --original-settings-only for the two
+      original perturbation settings.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from __future__ import annotations
 import argparse
 import csv
 import itertools
+import json
 import math
 import warnings
 from pathlib import Path
@@ -139,6 +144,8 @@ def make_R_delta(
     if op > 0:
         M = M / op
 
+    if direction not in {"worst", "opposite"}:
+        raise ValueError(f"Unknown perturbation direction: {direction}")
     sign = -1.0 if direction == "worst" else 1.0
     Delta = sign * q * eta_min * M
 
@@ -198,9 +205,13 @@ def omppi_eval(Sigma_hat: np.ndarray, Sigma_true: np.ndarray, costs: np.ndarray,
     tau[1 : K + 1] = cov_yf_hat ** 2 / var_f_hat
     tau[K + 1] = 0.0
 
-    Delta = np.maximum(tau[:-1] - tau[1:], 1e-8)
+    Delta = tau[:-1] - tau[1:]
+    if np.any(Delta <= 0):
+        raise ValueError("The full OMPPI chain requires positive explained-variance gaps.")
     Q = float(np.sum(np.sqrt(Delta * costs)))
     n = B / Q * np.sqrt(Delta / costs)
+    if np.any(np.diff(n) < -1e-9):
+        raise ValueError("The full OMPPI chain does not have an admissible nested allocation.")
     gamma = cov_yf_hat / var_f_hat
 
     V_report = omppi_variance(n, gamma, Sigma_hat)
@@ -213,7 +224,7 @@ def omppi_eval(Sigma_hat: np.ndarray, Sigma_true: np.ndarray, costs: np.ndarray,
         "coverage": coverage_from_variances(V_true, V_report),
         "width": width_from_variance(V_report),
         "active_sets": "full nested chain",
-        "n_active_sets": 6,
+        "n_active_sets": K + 1,
     }
 
 
@@ -331,11 +342,15 @@ def multipppi_original_eval(
             grad[idx] = -(x @ Gi @ x) / ci
         return val, grad
 
+    # Multiplying the objective by a positive constant does not change its
+    # minimizer. Scaling by the target cost improves SLSQP's stopping behavior.
+    objective_scale = float(marginal_costs[0])
+
     def fun(b: np.ndarray) -> float:
-        return objective_and_grad(b)[0]
+        return objective_and_grad(b)[0] / objective_scale
 
     def jac(b: np.ndarray) -> np.ndarray:
-        return objective_and_grad(b)[1]
+        return objective_and_grad(b)[1] / objective_scale
 
     b0 = np.ones(m) * (0.5 / (m - 1))
     b0[0] = 0.5
@@ -357,11 +372,17 @@ def multipppi_original_eval(
         method="SLSQP",
         bounds=bounds,
         constraints=constraints,
-        options={"ftol": 1e-11, "maxiter": 1000, "disp": False},
+        options={"ftol": 1e-13, "maxiter": 2000, "disp": False},
     )
 
     b = np.maximum(res.x, 0.0)
     b = b / b.sum()
+    value, gradient = objective_and_grad(b)
+    # Convex simplex first-order gap: the linearized objective lower bound is
+    # value - gap. This also audits solutions returned with a line-search flag.
+    relative_gap = float(max(0.0, gradient @ b - gradient.min()) / value)
+    if relative_gap > 1e-4:
+        raise RuntimeError(f"MultiPPI optimizer gap is too large: {relative_gap:.3g}")
     n = B * b / cI
 
     M = np.zeros((d, d))
@@ -374,9 +395,11 @@ def multipppi_original_eval(
     q_hat = []
     q_true = []
     active_sets = []
+    total_weight = np.zeros(d)
     for I, ni, inv_hat in zip(collection, n, inv_blocks_hat):
         x_I = x_full[list(I)]
         lam = ni * (inv_hat @ x_I)
+        total_weight[list(I)] += lam
 
         qh = float(lam @ Sigma_hat[np.ix_(I, I)] @ lam)
         qt = float(lam @ Sigma_true[np.ix_(I, I)] @ lam)
@@ -392,6 +415,10 @@ def multipppi_original_eval(
 
     V_report = float(np.sum(q_hat[active] / n[active]))
     V_true = float(np.sum(q_true[active] / n[active]))
+    unbiasedness_error = float(np.max(np.abs(total_weight - a)))
+    budget_error = float(abs(n @ cI - B) / B)
+    if unbiasedness_error > 1e-6 or budget_error > 1e-10:
+        raise RuntimeError("MultiPPI weights or allocations failed the feasibility check.")
 
     return {
         "method": "MultiPPI",
@@ -401,6 +428,12 @@ def multipppi_original_eval(
         "width": width_from_variance(V_report),
         "active_sets": ";".join(str(I) for I in active_sets),
         "n_active_sets": int(len(active_sets)),
+        "optimizer_success": bool(res.success),
+        "optimizer_message": str(res.message),
+        "optimizer_iterations": int(res.nit),
+        "optimizer_relative_gap": relative_gap,
+        "unbiasedness_error": unbiasedness_error,
+        "budget_relative_error": budget_error,
     }
 
 
@@ -438,6 +471,9 @@ def run_one(
         vectorppi_eval(Sigma_hat, Sigma_true, costs, B),
         multipppi_original_eval(Sigma_hat, Sigma_true, costs, B),
     ]:
+        for diagnostic in ["optimizer_success", "optimizer_message", "optimizer_iterations",
+                           "optimizer_relative_gap", "unbiasedness_error", "budget_relative_error"]:
+            out.setdefault(diagnostic, None)
         out.update(
             {
                 "setting": setting,
@@ -516,8 +552,14 @@ def save_combined_figure(df: pd.DataFrame, out_path: Path) -> None:
         ("pure_R_perturbation", r"Pure $R$ perturbation"),
         ("full_covariance_perturbation", "Full covariance perturbation"),
     ]
+    if "opposite_R_perturbation" in set(df["setting"]):
+        settings = [
+            ("opposite_R_perturbation", r"Pure $R$: $\Delta_R^+$"),
+            ("pure_R_perturbation", r"Pure $R$: $\Delta_R^-$"),
+            ("full_covariance_perturbation", "Full covariance perturbation"),
+        ]
 
-    fig, axes = plt.subplots(2, 3, figsize=(20.5, 10.2), sharex=True)
+    fig, axes = plt.subplots(len(settings), 3, figsize=(20.5, 4.2 * len(settings) + 1.8), sharex=True)
 
     for row, (setting, row_title) in enumerate(settings):
         dset = df[df["setting"] == setting].copy()
@@ -589,15 +631,15 @@ def save_combined_figure(df: pd.DataFrame, out_path: Path) -> None:
         handlelength=2.8,
         handletextpad=0.5,
         borderaxespad=0.2,
-        bbox_to_anchor=(0.5, 0.1),
+        bbox_to_anchor=(0.5, 0.025),
     )
 
-    fig.tight_layout(rect=[0.0, 0.18, 1.0, 1.0])
+    fig.tight_layout(rect=[0.0, 0.13 if len(settings) == 3 else 0.18, 1.0, 1.0])
     fig.savefig(out_path / "omppi_vectorppi_multippi_geometry_combined.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
-def run_all(out_dir: str = "omppi_vectorppi_multippi_sim_outputs") -> list[dict]:
+def run_all(out_dir: str = "omppi_vectorppi_multippi_sim_outputs", original_settings_only: bool = False) -> list[dict]:
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
 
@@ -608,10 +650,12 @@ def run_all(out_dir: str = "omppi_vectorppi_multippi_sim_outputs") -> list[dict]
     #eta_grid = [0.10, 0.05, 0.02]
     q_grid = list(np.linspace(0.0, 0.6, 10))
     settings = ["pure_R_perturbation", "full_covariance_perturbation"]
-    direction = "worst"
+    if not original_settings_only:
+        settings.insert(0, "opposite_R_perturbation")
 
     rows: list[dict] = []
     for setting in settings:
+        direction = "opposite" if setting == "opposite_R_perturbation" else "worst"
         for eta in eta_grid:
             for q in q_grid:
                 rows.extend(
@@ -624,6 +668,7 @@ def run_all(out_dir: str = "omppi_vectorppi_multippi_sim_outputs") -> list[dict]
                         B=B,
                     )
                 )
+            print(f"Completed {setting}, lambda_min={eta:g}", flush=True)
 
     csv_path = out_path / "simulation_summary.csv"
     with csv_path.open("w", newline="") as f:
@@ -632,6 +677,18 @@ def run_all(out_dir: str = "omppi_vectorppi_multippi_sim_outputs") -> list[dict]
         writer.writerows(rows)
 
     df = pd.DataFrame(rows)
+    reference = df[df["method"] == "OMPPI"].set_index(["setting", "eta_min_R", "q"])
+    keys = ["setting", "eta_min_R", "q"]
+    for metric, column in [("V_true", "true_variance_relative_to_OMPPI"),
+                           ("width", "reported_width_relative_to_OMPPI")]:
+        df[column] = [r[metric] / reference.loc[tuple(r[k] for k in keys), metric]
+                      for r in rows]
+    df.to_csv(csv_path, index=False)
+    config = dict(budget=B, costs=costs.tolist(), lambda_grid=eta_grid, q_grid=q_grid,
+                  settings=settings, full_covariance_noise_norm=FULL_COV_NOISE_NORM,
+                  full_covariance_noise_seed=777,
+                  interpretation="Conditional Gaussian calculations under specified covariance inputs; not win frequencies or repeated-pilot coverage.")
+    (out_path / "experiment_config.json").write_text(json.dumps(config, indent=2))
     save_combined_figure(df, out_path)
 
     for setting in settings:
@@ -651,9 +708,11 @@ def run_all(out_dir: str = "omppi_vectorppi_multippi_sim_outputs") -> list[dict]
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-dir", type=str, default="omppi_vectorppi_multippi_sim_outputs")
+    parser.add_argument("--original-settings-only", action="store_true",
+                        help="Run only the original two perturbation settings.")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    run_all(out_dir=args.out_dir)
+    run_all(out_dir=args.out_dir, original_settings_only=args.original_settings_only)
