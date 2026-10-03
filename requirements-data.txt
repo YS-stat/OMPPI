@@ -1,0 +1,6 @@
+# Additional packages for functional_correctness/generate_humaneval_data.py (data generation only)
+torch==2.10.0
+transformers==5.7.0
+accelerate==1.13.0
+evalplus==0.3.1
+tqdm==4.67.3

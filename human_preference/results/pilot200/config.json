@@ -1,0 +1,70 @@
+{
+  "n_pilot": 200,
+  "n_labeled": 600,
+  "budgets": "100:1500:10",
+  "n_outer_trials": 100,
+  "n_trials": 200,
+  "trial_id_stride": null,
+  "covariance": "ledoitwolf",
+  "eps_gap": 0.0001,
+  "seed": 123,
+  "num_workers": 60,
+  "budgets_used": [
+    100.0,
+    255.55555555555554,
+    411.1111111111111,
+    566.6666666666666,
+    722.2222222222222,
+    877.7777777777777,
+    1033.3333333333333,
+    1188.8888888888887,
+    1344.4444444444443,
+    1500.0
+  ],
+  "pilot_counts": {
+    "0": 40,
+    "1": 40,
+    "2": 40,
+    "3": 40,
+    "4": 40
+  },
+  "labeled_counts": {
+    "0": 120,
+    "1": 120,
+    "2": 120,
+    "3": 120,
+    "4": 120
+  },
+  "strata_pi": {
+    "0": 0.20037278657968313,
+    "1": 0.19944082013047532,
+    "2": 0.20037278657968313,
+    "3": 0.19944082013047532,
+    "4": 0.20037278657968313
+  },
+  "costs_used": {
+    "gemini-2.5-flash": 0.23662159871564678,
+    "gemini-2.5-flash-lite": 0.07720626025219278,
+    "gemini-2.5-pro": 1.0,
+    "gemini-3.1-flash-lite-preview": 0.20414571621736413,
+    "gemini-3.1-flash-preview": 0.38489151148497713,
+    "gpt-oss-120b": 0.1499543316084243,
+    "gpt-oss-20b": 0.11562031366425055,
+    "qwen3-235b-a22b-instruct": 0.161062159173378,
+    "qwen3-coder-480b-a35b-instruct": 0.16861427396147638,
+    "qwen3-next-80b-instruct": 0.11354626475937575
+  },
+  "rows": 823,
+  "judges": [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-pro",
+    "gemini-3.1-flash-lite-preview",
+    "gemini-3.1-flash-preview",
+    "gpt-oss-120b",
+    "gpt-oss-20b",
+    "qwen3-235b-a22b-instruct",
+    "qwen3-coder-480b-a35b-instruct",
+    "qwen3-next-80b-instruct"
+  ]
+}

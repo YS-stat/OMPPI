@@ -1,41 +1,36 @@
 #!/usr/bin/env bash
+# Chatbot Arena experiment (Section 3.4 and Appendix D).
+#   bash run.sh           full reproduction: four Monte Carlo runs, then oracle, allocation, metrics,
+#                         figures and judge alignment (all outputs in results/)
+#   bash run.sh results   figures and tables from the saved runs in results/ (no Monte Carlo runs)
+#   bash run.sh quick     rerun the first 8 repetitions of each pilot size and compare them with the
+#                         paper's runs (outputs in quick_check/)
+# Environment: PYTHON (default python), OMPPI_WORKERS (parallel workers, default 8).
 set -euo pipefail
+cd "$(dirname "$0")"
+PY="${PYTHON:-python}"
+W="${OMPPI_WORKERS:-8}"
+# One BLAS thread per process: the scripts parallelize over processes, and results are then
+# bit-for-bit reproducible.
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
+PILOTS="50 100 200 400"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+if [ "${1:-}" = "quick" ]; then
+  for P in $PILOTS; do
+    $PY arena_experiment.py --n-pilot "$P" --n-outer-trials 1 --n-trials 8 --trial-id-stride 200 \
+        --num-workers "$W" --out-dir "quick_check/pilot$P"
+    $PY ../check_reproduction.py "results/pilot$P/trials_outer0_first8.csv" "quick_check/pilot$P/trials.csv"
+  done
+  exit 0
+fi
 
-DEVICE="${OMPPI_DEVICE:-cuda}"
-WORKERS="${OMPPI_NUM_WORKERS:-8}"
-
-python -u mppi_llm_preferences_compare_stratified_piq.py \
-  --final-table ./data/final_aligned_with_vertex_online.pkl \
-  --out-dir ./outputs/main \
-  --label-mode drop_ties \
-  --n-labeled 600 \
-  --n-trials 500 \
-  --n-outer-trials 100 \
-  --theta-truth-size 600 \
-  --budgets 0:1000:10 \
-  --covariance-method ledoitwolf \
-  --ours-top-ridge 1e-6 \
-  --eps-gap 0.0001 \
-  --device "$DEVICE" \
-  --num-workers "$WORKERS" \
-  --smooth-window 3 \
-  --num-strata 5 \
-  --detail-save-mode compact \
-  --save yes
-
-python -u plot_llm_preferences_stratified_reference_cost.py
-
-python -u judge_alignment_bias_variance_demo.py \
-  --final-table ./data/final_aligned_with_vertex_online.pkl \
-  --out-dir ./outputs/judge_alignment \
-  --label-mode drop_ties \
-  --gpt4-name gpt-4-1106-preview \
-  --claude-name claude-2.1 \
-  --base-model gpt-oss-20b \
-  --n0 600 \
-  --n1 1600 \
-  --lambdas=-2:2:17 \
-  --device "$DEVICE"
+if [ "${1:-}" != "results" ]; then
+  for P in $PILOTS; do          # 100 outer x 200 inner repetitions per pilot size
+    $PY arena_experiment.py --n-pilot "$P" --num-workers "$W"
+  done
+fi
+$PY arena_oracle.py
+$PY arena_allocation.py
+$PY arena_metrics.py
+$PY arena_figures.py
+$PY judge_alignment.py

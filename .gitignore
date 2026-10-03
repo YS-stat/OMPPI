@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.DS_Store
+quick_check/
+# Monte Carlo outputs of full reruns (too large for the repository)
+trials.csv
+outer_truth.csv
+functional_correctness/results/generated_data/

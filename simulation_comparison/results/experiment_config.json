@@ -1,0 +1,38 @@
+{
+  "budget": 5000.0,
+  "costs": [
+    1000.0,
+    20.0,
+    4.0,
+    0.8,
+    0.16,
+    0.03
+  ],
+  "lambda_grid": [
+    0.1,
+    0.08,
+    0.06,
+    0.04,
+    0.02
+  ],
+  "q_grid": [
+    0.0,
+    0.06666666666666667,
+    0.13333333333333333,
+    0.2,
+    0.26666666666666666,
+    0.3333333333333333,
+    0.4,
+    0.4666666666666667,
+    0.5333333333333333,
+    0.6
+  ],
+  "settings": [
+    "opposite_R_perturbation",
+    "pure_R_perturbation",
+    "full_covariance_perturbation"
+  ],
+  "full_covariance_noise_norm": 0.02,
+  "full_covariance_noise_seed": 777,
+  "interpretation": "Conditional Gaussian calculations under specified covariance inputs; not win frequencies or repeated-pilot coverage."
+}

@@ -1,0 +1,39 @@
+{
+  "n_comparisons": 823,
+  "theta_hat": 0.7521263669501823,
+  "var_y": 0.18643229508850204,
+  "n0": 600,
+  "n1": 1600,
+  "base_model": "gpt-oss-20b",
+  "lambda_grid": [
+    -2.0,
+    -1.75,
+    -1.5,
+    -1.25,
+    -1.0,
+    -0.75,
+    -0.5,
+    -0.25,
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    1.75,
+    2.0
+  ],
+  "judges": [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-pro",
+    "gemini-3.1-flash-lite-preview",
+    "gemini-3.1-flash-preview",
+    "gpt-oss-120b",
+    "gpt-oss-20b",
+    "qwen3-235b-a22b-instruct",
+    "qwen3-coder-480b-a35b-instruct",
+    "qwen3-next-80b-instruct"
+  ]
+}

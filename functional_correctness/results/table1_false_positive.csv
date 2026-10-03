@@ -1,0 +1,6 @@
+evaluator,delta,gamma,tau2_over_var_y,normalized_oracle_gap
+Plus50,0.0,1.0,1.0,0.0
+Plus25,0.0049,0.9795,0.9733,0.0167
+Plus10,0.0091,0.9622,0.9508,0.0308
+OriginalTests,0.0179,0.9287,0.9071,0.0581
+StaticOK,0.4398,0.3464,0.1477,0.5327

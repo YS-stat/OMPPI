@@ -1,0 +1,6 @@
+evaluator,normalized_cost,correlation_with_y,mean_value
+Plus50,0.582,0.812,0.358
+Plus25,0.382,0.815,0.362
+Plus10,0.249,0.813,0.368
+OriginalTests,0.165,0.798,0.379
+StaticOK,0.017,0.384,0.673

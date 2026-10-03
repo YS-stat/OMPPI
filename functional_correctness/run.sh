@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
+# HumanEval+ experiment (Sections 3.2-3.3 and Appendix E).
+#   bash run.sh           full reproduction: three Monte Carlo runs, then oracle, metrics, figures,
+#                         tables and the shrinkage comparison (all outputs in results/)
+#   bash run.sh results   figures and tables from the saved runs in results/ (no Monte Carlo runs)
+#   bash run.sh quick     rerun the first 8 repetitions of each pilot size and compare them with the
+#                         paper's runs (outputs in quick_check/)
+# Environment: PYTHON (default python), OMPPI_WORKERS (parallel workers, default 8).
 set -euo pipefail
+cd "$(dirname "$0")"
+PY="${PYTHON:-python}"
+W="${OMPPI_WORKERS:-8}"
+# One BLAS thread per process: the scripts parallelize over processes, and results are then
+# bit-for-bit reproducible.
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+if [ "${1:-}" = "quick" ]; then
+  for P in 800 400 200; do
+    STRIDE=$([ "$P" = 800 ] && echo 500 || echo 200)
+    $PY humaneval_experiment.py --n-pilot "$P" --n-outer-trials 1 --n-trials 8 --trial-id-stride "$STRIDE" \
+        --num-workers "$W" --out-dir "quick_check/pilot$P"
+    $PY ../check_reproduction.py "results/pilot$P/trials_outer0_first8.csv" "quick_check/pilot$P/trials.csv"
+  done
+  exit 0
+fi
 
-DEVICE="${OMPPI_DEVICE:-cuda}"
-WORKERS="${OMPPI_NUM_WORKERS:-8}"
-
-python -u mppi_humaneval_execution_compare_fullcost_stratified_outertruth.py \
-  --final-table ./data/humaneval_plus_generated_outputs_final.csv \
-  --out-dir ./outputs/main \
-  --target-col Y_full_plus \
-  --prediction-cols f_plus_50,f_plus_25,f_plus_10,f_original_tests,f_static_ok \
-  --prediction-names Plus50,Plus25,Plus10,OriginalTests,StaticOK \
-  --prompt-col prompt \
-  --y-cost-col cost_full_plus \
-  --prediction-cost-cols cost_plus_50,cost_plus_25,cost_plus_10,cost_original_tests,cost_static_ok \
-  --normalize-costs yes \
-  --cost-floor 0.0001 \
-  --n-pilot 800 \
-  --n-outer-trials 100 \
-  --theta-truth-size 4500 \
-  --n-trials 500 \
-  --exclude-truth-from-inference no \
-  --budgets 200:3000:10 \
-  --covariance-method ledoitwolf \
-  --ridge 1e-8 \
-  --eps-gap 0.0001 \
-  --num-strata 5 \
-  --device "$DEVICE" \
-  --num-workers "$WORKERS" \
-  --detail-save-mode compact \
-  --save yes
-
-python -u plot_humaneval_results.py
+if [ "${1:-}" != "results" ]; then
+  $PY humaneval_experiment.py --n-pilot 800 --n-trials 500 --num-workers "$W"     # main design, 100 x 500
+  $PY humaneval_experiment.py --n-pilot 400 --n-trials 200 --num-workers "$W"     # 100 x 200
+  $PY humaneval_experiment.py --n-pilot 200 --n-trials 200 --num-workers "$W"     # 100 x 200
+fi
+$PY humaneval_oracle.py
+$PY humaneval_metrics.py
+$PY humaneval_figures.py
+$PY humaneval_tables.py
+$PY humaneval_shrinkage.py

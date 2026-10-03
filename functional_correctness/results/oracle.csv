@@ -1,0 +1,8 @@
+method,width_ratio,share_of_oracle
+Classical,1.0,0.0
+VectorPPI++,0.976,0.156
+MultiPPI,0.866,0.866
+OMPPI,0.8564,0.928
+MultiPPI + nested blocks,0.8454,1.0
+Oracle (all 63 blocks),0.8454,1.0
+All predictors free,0.5327,

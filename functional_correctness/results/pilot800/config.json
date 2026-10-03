@@ -1,0 +1,111 @@
+{
+  "n_pilot": 800,
+  "n_trials": 500,
+  "n_outer_trials": 100,
+  "theta_truth_size": 4500,
+  "budgets": [
+    200.0,
+    511.1111111111111,
+    822.2222222222222,
+    1133.3333333333333,
+    1444.4444444444443,
+    1755.5555555555554,
+    2066.6666666666665,
+    2377.7777777777774,
+    2688.8888888888887,
+    3000.0
+  ],
+  "seed": 123,
+  "trial_id_stride": null,
+  "num_workers": 60,
+  "target_col": "Y_full_plus",
+  "prediction_cols": [
+    "f_plus_50",
+    "f_plus_25",
+    "f_plus_10",
+    "f_original_tests",
+    "f_static_ok"
+  ],
+  "prediction_names": [
+    "Plus50",
+    "Plus25",
+    "Plus10",
+    "OriginalTests",
+    "StaticOK"
+  ],
+  "num_strata": 5,
+  "covariance_method": "ledoitwolf",
+  "ridge": 1e-08,
+  "eps_gap": 0.0001,
+  "alpha": 0.05,
+  "stratum_min_labels": 2,
+  "y_cost_raw": 58.18292682926829,
+  "y_cost_used": 1.0,
+  "prediction_costs_raw": {
+    "Plus50": 33.890243902439025,
+    "Plus25": 22.225609756097562,
+    "Plus10": 14.463414634146341,
+    "OriginalTests": 9.573170731707316,
+    "StaticOK": 1.0
+  },
+  "prediction_costs_used": {
+    "Plus50": 0.5824774680360512,
+    "Plus25": 0.38199538880737793,
+    "Plus10": 0.2485852022636764,
+    "OriginalTests": 0.1645357367428212,
+    "StaticOK": 0.017187172500524
+  },
+  "joint_prediction_cost_used": 0.5824774680360512,
+  "methods": [
+    "Classical",
+    "VectorPPI++",
+    "MultiPPI",
+    "OMPPI(Exhaustive)",
+    "OMPPI(DAG)"
+  ],
+  "strata_pi": {
+    "0": 0.2,
+    "1": 0.2,
+    "2": 0.2,
+    "3": 0.2,
+    "4": 0.2
+  },
+  "strata_summary": {
+    "0": {
+      "count": 984,
+      "min": 38.0,
+      "max": 81.0,
+      "mean": 63.53048780487805,
+      "median": 67.0
+    },
+    "1": {
+      "count": 984,
+      "min": 81.0,
+      "max": 104.0,
+      "mean": 93.92073170731707,
+      "median": 94.0
+    },
+    "2": {
+      "count": 984,
+      "min": 104.0,
+      "max": 130.0,
+      "mean": 115.75,
+      "median": 117.0
+    },
+    "3": {
+      "count": 984,
+      "min": 130.0,
+      "max": 165.0,
+      "mean": 146.890243902439,
+      "median": 146.0
+    },
+    "4": {
+      "count": 984,
+      "min": 165.0,
+      "max": 391.0,
+      "mean": 236.4939024390244,
+      "median": 228.0
+    }
+  },
+  "full_empirical_theta": 0.233130081300813
+}
