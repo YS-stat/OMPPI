@@ -59,7 +59,8 @@ experiment.
 | Table E.1 | HumanEval+ partial evaluators | `functional_correctness/humaneval_tables.py` | `functional_correctness/results/tableE1_evaluators.csv` |
 | Table E.2 | Stratum-level oracle constants for HumanEval+ | `functional_correctness/humaneval_oracle.py` | `functional_correctness/results/oracle_strata.csv` and `oracle.csv` |
 | Table E.3 | HumanEval+ results by pilot size | `functional_correctness/humaneval_metrics.py` | `functional_correctness/results/metrics.csv` (`share_rmse`, `share_width`, `coverage_pool`; oracle row: `oracle_share`) |
-| Figure E.1 | HumanEval+ allocations at the largest budget | `functional_correctness/humaneval_figures.py` | `functional_correctness/results/figures/humaneval_combined_allocation.pdf` |
+| Figure E.1 | Correlations of the full-evaluator outcome and the five partial evaluators | `functional_correctness/humaneval_figures.py` | `functional_correctness/results/figures/humaneval_correlation.pdf`; matrix in `functional_correctness/results/humaneval_correlation.csv` |
+| Figure E.2 | HumanEval+ allocations at the largest budget | `functional_correctness/humaneval_figures.py` | `functional_correctness/results/figures/humaneval_combined_allocation.pdf` |
 | Tables F.1, F.2 | Comparison with related methods (no computation) | – | – |
 | Figure F.1 | Controlled covariance-perturbation comparison | `simulation_comparison/covariance_perturbation.py` | `simulation_comparison/results/omppi_vectorppi_multippi_geometry_combined.pdf` |
 
@@ -69,7 +70,7 @@ and the ratio 0.5327 with free partial evaluators are in `functional_correctness
 shrinkage comparison in Appendix E (ratios 1.20, 0.90 and 0.89 at pilot size 200) is in
 `functional_correctness/results/shrinkage.csv` (`humaneval_shrinkage.py`).
 
-Figure 2, Table E.3, Figure E.1, Figure D.3 and Table D.2 summarize the Monte Carlo runs stored in
+Figure 2, Table E.3, Figure E.2, Figure D.3 and Table D.2 summarize the Monte Carlo runs stored in
 `results/pilot<n>/` (summary files of the paper's runs); the full `run.sh` of an experiment regenerates
 those runs (below). All other outputs are computed directly from the data.
 
@@ -117,11 +118,11 @@ options.
 │   ├── arena_metrics.py            checks and Table D.2
 │   ├── arena_figures.py            Figures D.3-D.6
 │   └── judge_alignment.py          Figure D.2 and Table D.1
-├── functional_correctness/         HumanEval+ experiment: Figure 2, Table 1, Tables E.1-E.3, Figure E.1
+├── functional_correctness/         HumanEval+ experiment: Figure 2, Table 1, Tables E.1-E.3, Figures E.1-E.2
 │   ├── humaneval_experiment.py     Monte Carlo runs (Classical, VectorPPI++, MultiPPI, OMPPI)
 │   ├── humaneval_oracle.py         designs under the population covariance (Table E.2)
 │   ├── humaneval_metrics.py        checks and Table E.3
-│   ├── humaneval_figures.py        Figure 2 and Figure E.1
+│   ├── humaneval_figures.py        Figure 2 and Figures E.1-E.2
 │   ├── humaneval_tables.py         Table 1 and Table E.1
 │   ├── humaneval_shrinkage.py      effect of covariance shrinkage (Appendix E)
 │   └── generate_humaneval_data.py  builds data/humaneval_plus (optional; GPU)

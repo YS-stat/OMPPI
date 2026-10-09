@@ -8,7 +8,10 @@ humaneval_combined_share.pdf (Figure 2)
   with the population covariance (results/oracle.csv). Dotted lines: each method's own design with
   the population covariance. 0% = Classical, 100% = oracle. The y-axis is broken (66-102% above,
   -95-25% below). Curves are centered 3-point moving averages over budgets.
-humaneval_combined_allocation.pdf (Figure E.1)
+humaneval_correlation.pdf (Figure E.1)
+  Correlation of the full-evaluator outcome Y and the five partial evaluators (pass fractions) over all
+  4920 completions; the matrix is also saved as results/humaneval_correlation.csv.
+humaneval_combined_allocation.pdf (Figure E.2)
   OMPPI and MultiPPI sample and cost allocations in percent per stratum at the largest budget. OMPPI
   counts are nested (a sample evaluated at one level also has every cheaper evaluator) and its cost is
   charged incrementally; MultiPPI blocks are priced by their most expensive evaluator.
@@ -32,6 +35,7 @@ from matplotlib.lines import Line2D
 HERE = Path(__file__).resolve().parent
 RES = HERE / "results"
 OUT = RES / "figures"
+DATA = HERE.parent / "data" / "humaneval_plus" / "humaneval_plus_completions.csv"
 PILOTS = [200, 400, 800]
 SMOOTH = 3
 METHODS = ["Classical", "VectorPPI++", "MultiPPI", "OMPPI"]
@@ -45,6 +49,8 @@ ORACLE_LS = (0, (1.2, 1.8))
 TOP_LIM, TOP_TICKS = (66, 102), [70, 80, 90, 100]
 BOT_LIM, BOT_TICKS = (-95, 25), [-80, 0]
 PRED_NAMES = ["Plus50", "Plus25", "Plus10", "OriginalTests", "StaticOK"]
+TARGET_COL = "Y_full_plus"
+PRED_COLS = ["f_plus_50", "f_plus_25", "f_plus_10", "f_original_tests", "f_static_ok"]
 OMPPI_SRC = ["Y"] + PRED_NAMES
 MULTI_SRC = ["Y+Joint all", "Joint all"] + PRED_NAMES
 
@@ -182,7 +188,7 @@ def make_performance_figure():
 
 
 # ============================================================
-# Allocation at the largest budget (Figure E.1)
+# Allocation at the largest budget (Figure E.2)
 # ============================================================
 def allocation_tables(p, costs, strata):
     a = pd.read_csv(RES / f"pilot{p}" / "allocation_summary.csv")
@@ -260,10 +266,41 @@ def make_allocation_figure():
     plt.close(fig)
 
 
+# ============================================================
+# Correlations (Figure E.1)
+# ============================================================
+def make_correlation_figure():
+    df = pd.read_csv(DATA, usecols=[TARGET_COL] + PRED_COLS)
+    mat = np.corrcoef(df[[TARGET_COL] + PRED_COLS].to_numpy(float), rowvar=False)
+    labels = ["Y"] + PRED_NAMES
+    pd.DataFrame(mat, index=labels, columns=labels).round(4).to_csv(RES / "humaneval_correlation.csv")
+
+    fig, ax = plt.subplots(figsize=(9.0, 7.6))
+    im = ax.imshow(mat, cmap="RdBu_r", vmin=-1.0, vmax=1.0, aspect="equal")
+    ax.set_title("Correlation among Full and Partial Evaluators")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_yticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=45, ha="right", rotation_mode="anchor")
+    ax.set_yticklabels(labels)
+    for i in range(mat.shape[0]):
+        for j in range(mat.shape[1]):
+            ax.text(j, i, f"{mat[i, j]:.2f}", ha="center", va="center", fontsize=15,
+                    color="white" if abs(mat[i, j]) >= 0.7 else "black")
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.tick_params(axis="both", length=0)
+    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cbar.set_label("Correlation")
+    fig.tight_layout()
+    fig.savefig(OUT / "humaneval_correlation.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main():
     configure_style()
     OUT.mkdir(parents=True, exist_ok=True)
     make_performance_figure()
+    make_correlation_figure()
     make_allocation_figure()
     print("saved:", sorted(x.name for x in OUT.glob("*.pdf")))
 
