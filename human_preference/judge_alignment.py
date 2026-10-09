@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Judge alignment in the Chatbot Arena data (Figure D.1, Table D.1 and the left panel of Figure 2).
+"""Judge alignment in the Chatbot Arena data (Figure D.2 and Table D.1).
 
 For each LLM judge f: correlation with Y, alignment gamma = Cov(Y, f) / Var(f), explained variance
 tau^2 = Cov(Y, f)^2 / Var(f), and the single-predictor leading variance ratio V_OMPPI / V_LO with
 n0 labeled and n1 judged comparisons, together with the normalized cost and mean API time
 (Table D.1). Three empirical bias directions b(X) are standardized: Position (GPT-4-1106-Preview
 shown first), Length (log length ratio of the two responses) and Consensus (mean vote share of the
-other judges). Figure D.1 shows Corr{Y, b(X)} and V_OMPPI / V_LO for the base judge perturbed on
+other judges). Figure D.2 shows Corr{Y, b(X)} and V_OMPPI / V_LO for the base judge perturbed on
 the log-odds scale, f_lambda = sigmoid(logit f + lambda b(X)).
 
 Writes results/judge_alignment/: judge_table.csv, alignment_table.csv, perturbation_curve.csv,
@@ -199,7 +199,7 @@ def main():
     plot(alignment_df, curve_df, a.base_model, out / "judge_alignment.pdf")
 
     print(f"n = {len(y)}, theta_hat = {np.mean(y):.4f}, var_y = {var_y:.4f}")
-    print("\nTable D.1 (tau2_hat, cost_normalized, time_mean_sec) and Figure 2, left (corr_Y_f):")
+    print("\nTable D.1 (tau2_hat, cost_normalized, time_mean_sec), with the correlation corr_Y_f:")
     print(judge_table[["display_model", "corr_Y_f", "tau2_hat", "cost_normalized", "time_mean_sec"]].round(4).to_string(index=False))
     print("\nAlignment of the bias directions:")
     print(alignment_df[["direction", "corr_Y_btilde", "cov_Y_btilde"]].to_string(index=False))

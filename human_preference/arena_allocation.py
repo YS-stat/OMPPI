@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Allocations of the Chatbot Arena runs at the largest budget (Figure D.5).
+"""Allocations of the Chatbot Arena runs at the largest budget (Figure D.6).
 
 Replays the pilots of the first 200 repetitions of each run (same seeds and draw order as
 arena_experiment.py) and recomputes the OMPPI(DAG) and MultiPPI designs at B = 1500 (B_h = pi_h B,

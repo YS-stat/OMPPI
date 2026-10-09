@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 """Figures for the Chatbot Arena experiment, written to results/figures/.
 
-arena_combined_share.pdf (Figure D.2)
+arena_combined_share.pdf (Figure D.3)
   One row per pilot size (50, 100, 200, 400). Columns: coverage | RMSE | CI width. RMSE and CI width
   are shown as reduction / oracle reduction, where the reduction of a design is 1 - (its RMSE or CI
   width) / (that of Classical) and the oracle reduction at budget B is that of the best linear
   unbiased design over all 1023 judge subsets with the population covariance (results/oracle.csv).
   Dotted curves: each method's own design with the population covariance. Curves are centered
   3-point moving averages over budgets.
-arena_oracle_reduction.pdf (Figure D.4)
+arena_oracle_reduction.pdf (Figure D.5)
   Reduction relative to Classical (%) against the budget, all with the population covariance: the
   oracle (solid), each method's own design (dotted) and the oracle as B -> infinity (dashed).
-arena_combined_allocation.pdf (Figure D.5)
+arena_combined_allocation.pdf (Figure D.6)
   OMPPI and MultiPPI sample and cost allocations of the extra judge queries, in percent per stratum
   at B = 1500, averaged over the pilots of 200 repetitions (results/allocation.csv).
-arena_correlation.pdf (Figure D.3)
+arena_correlation.pdf (Figure D.4)
   Correlation of Y and the ten judges over all 823 comparisons; the matrix is also saved as
-  results/arena_correlation.csv, and the twelve correlations shown in Figure 2 as
-  results/figure2_correlations.csv.
+  results/arena_correlation.csv.
 
 OMPPI is the OMPPI(DAG) run (exhaustive search selects the same route in every repetition).
 Usage: python arena_figures.py
@@ -54,9 +53,6 @@ JUDGES = {"gemini-2.5-pro": "G2.5-Pro", "gemini-3.1-flash-preview": "G3.1-Flash"
           "gemini-2.5-flash-lite": "G2.5-Lite", "qwen3-next-80b-instruct": "Qwen-Next",
           "qwen3-235b-a22b-instruct": "Qwen-235B", "gpt-oss-120b": "OSS-120B",
           "qwen3-coder-480b-a35b-instruct": "Qwen-Coder", "gpt-oss-20b": "OSS-20B"}
-FIGURE2_HUMAN = ["G2.5-Pro", "G2.5-Flash", "Qwen-Next", "Qwen-235B", "OSS-120B", "OSS-20B"]
-FIGURE2_PAIRS = [("G2.5-Pro", "G2.5-Flash"), ("Qwen-Next", "Qwen-235B"), ("OSS-120B", "OSS-20B"),
-                 ("G2.5-Flash", "Qwen-235B"), ("G2.5-Flash", "OSS-120B"), ("Qwen-235B", "OSS-120B")]
 
 
 def configure_style():
@@ -108,7 +104,7 @@ def label_rows(fig, rows):
 
 
 # ============================================================
-# Coverage, RMSE and CI width (Figure D.2)
+# Coverage, RMSE and CI width (Figure D.3)
 # ============================================================
 def make_share_figure(orc):
     data = {p: load(p, orc) for p in PILOTS}
@@ -155,7 +151,7 @@ def make_share_figure(orc):
 
 
 # ============================================================
-# Oracle reductions against the budget (Figure D.4)
+# Oracle reductions against the budget (Figure D.5)
 # ============================================================
 def make_oracle_figure(orc):
     fig, ax = plt.subplots(figsize=(11.0, 5.6))
@@ -174,7 +170,7 @@ def make_oracle_figure(orc):
 
 
 # ============================================================
-# Allocation at the largest budget (Figure D.5)
+# Allocation at the largest budget (Figure D.6)
 # ============================================================
 def allocation_tables(a, p, strata):
     a = a[a["pilot"] == p].copy()
@@ -236,7 +232,7 @@ def make_allocation_figure(pop):
 
 
 # ============================================================
-# Correlations (Figure D.3 and Figure 2)
+# Correlations (Figure D.4)
 # ============================================================
 def make_correlation_figure(pop, names):
     cols = [0] + [1 + names.index(m) for m in JUDGES]
@@ -244,9 +240,6 @@ def make_correlation_figure(pop, names):
     labels = ["Y"] + list(JUDGES.values())
     corr = pd.DataFrame(mat, index=labels, columns=labels)
     corr.round(4).to_csv(RES / "arena_correlation.csv")
-    fig2 = [{"panel": "Human outcome vs LLM judge", "pair": f"Y, {j}", "correlation": round(corr.loc["Y", j], 4)} for j in FIGURE2_HUMAN]
-    fig2 += [{"panel": "LLM judge vs LLM judge", "pair": f"{a}, {b}", "correlation": round(corr.loc[a, b], 4)} for a, b in FIGURE2_PAIRS]
-    pd.DataFrame(fig2).to_csv(RES / "figure2_correlations.csv", index=False)
 
     fig, ax = plt.subplots(figsize=(13.0, 11.0))
     im = ax.imshow(mat, cmap="RdBu_r", vmin=-1.0, vmax=1.0, aspect="equal")
@@ -279,7 +272,7 @@ def main():
     make_oracle_figure(orc)
     make_allocation_figure(pop)
     make_correlation_figure(pop, names)
-    print("saved:", sorted(x.name for x in OUT.glob("*.pdf")), "and results/figure2_correlations.csv")
+    print("saved:", sorted(x.name for x in OUT.glob("*.pdf")))
 
 
 if __name__ == "__main__":

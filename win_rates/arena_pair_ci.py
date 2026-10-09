@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Pairwise win rates and 95% Wilson intervals in Chatbot Arena (Figure 1).
+"""Pairwise win rates and 95% Wilson intervals in Chatbot Arena (Figure D.1).
 
 Data: the Hugging Face dataset lmarena-ai/arena-human-preference-55k (downloaded on first use). For
 every unordered model pair (model_1 < model_2 alphabetically), the point estimate is the share of
 non-tied comparisons won by model_1 (ties dropped). Pairs with at least 100 non-tied comparisons are
 kept; a pair has a clear winner when its interval excludes 0.5.
-Writes results/pair_ci.csv and prints the numbers shown in Figure 1.
+Writes results/pair_ci.csv and prints the numbers shown in Figure D.1.
 Usage: python arena_pair_ci.py
 """
 import math
@@ -72,9 +72,9 @@ def main():
     res.to_csv(HERE / "results" / "pair_ci.csv", index=False)
 
     clear = int((res["resolved_winner"] != "unresolved").sum())
-    print(f"\nFigure 1, left: {len(res)} model pairs with at least {MIN_N} non-tied comparisons; "
+    print(f"\nFigure D.1, left: {len(res)} model pairs with at least {MIN_N} non-tied comparisons; "
           f"no clear winner {len(res) - clear}, clear winner {clear}")
-    print("Figure 1, right (win rate of Model A with 95% Wilson interval):")
+    print("Figure D.1, right (win rate of Model A with 95% Wilson interval):")
     ex = res.set_index(["model_1", "model_2"])
     for m1, m2 in EXAMPLES:
         r = ex.loc[(m1, m2)]

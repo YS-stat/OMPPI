@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Oracle reductions for the Chatbot Arena experiment (Figure D.4 and the oracle row of Table D.2).
+"""Oracle reductions for the Chatbot Arena experiment (Figure D.5 and the oracle row of Table D.2).
 
 Designs use the population covariance Sigma of each stratum of the 823 comparisons, with the labeled
 layer n_{L,h} = pi_h n_L (n_L = 600) and B_h = pi_h B as in arena_experiment.py. For each budget:

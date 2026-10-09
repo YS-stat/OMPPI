@@ -1,7 +1,7 @@
 # Code and data for "Statistical Inference for LLM Evaluations: From Multiple Auxiliary Predictors to Valid Uncertainty Quantification"
 
 This package reproduces every figure and table of the paper and its appendices that is computed from
-data: the Chatbot Arena human-preference experiment, the HumanEval+ functional-correctness experiment,
+data: the HumanEval+ functional-correctness experiment, the Chatbot Arena human-preference experiment,
 and the two simulation studies. Each experiment has its own folder with the scripts, a `run.sh`, and a
 `results/` folder that holds the outputs used in the paper.
 
@@ -44,19 +44,18 @@ experiment.
 
 | Paper | Content | Script | Output |
 |---|---|---|---|
-| Figure 1 | Win-rate intervals of model pairs in Chatbot Arena | `win_rates/arena_pair_ci.py` | `win_rates/results/pair_ci.csv`; the plotted numbers are printed |
-| Figure 2 | Selected correlations in the human-preference experiment | `human_preference/arena_figures.py` | `human_preference/results/figure2_correlations.csv` |
-| Figure 3 | Nested sampling design (schematic) | – | – |
+| Figure 1 | Nested sampling design (schematic) | – | – |
+| Figure 2 | HumanEval+: coverage, RMSE and interval width by pilot size | `functional_correctness/humaneval_figures.py` | `functional_correctness/results/figures/humaneval_combined_share.pdf` |
 | Table 1 | False-positive diagnostics of the HumanEval+ partial evaluators | `functional_correctness/humaneval_tables.py` | `functional_correctness/results/table1_false_positive.csv` |
-| Figure 4 | HumanEval+: coverage, RMSE and interval width by pilot size | `functional_correctness/humaneval_figures.py` | `functional_correctness/results/figures/humaneval_combined_share.pdf` |
 | Figure C.1 | Multivariate simulation study | `simulation/omppi_simulation.py` | `simulation/results/omppi_simulation_main.pdf` |
-| Figure D.1 | Judge-bias alignment in Chatbot Arena | `human_preference/judge_alignment.py` | `human_preference/results/judge_alignment/judge_alignment.pdf` |
-| Figure D.2 | Chatbot Arena: coverage, RMSE and interval width by pilot size | `human_preference/arena_figures.py` | `human_preference/results/figures/arena_combined_share.pdf` |
+| Figure D.1 | Win-rate intervals of model pairs in Chatbot Arena | `win_rates/arena_pair_ci.py` | `win_rates/results/pair_ci.csv`; the plotted numbers are printed |
+| Figure D.2 | Judge-bias alignment in Chatbot Arena | `human_preference/judge_alignment.py` | `human_preference/results/judge_alignment/judge_alignment.pdf` |
+| Figure D.3 | Chatbot Arena: coverage, RMSE and interval width by pilot size | `human_preference/arena_figures.py` | `human_preference/results/figures/arena_combined_share.pdf` |
 | Table D.1 | LLM judges: explained variance, cost and time | `human_preference/judge_alignment.py` | `human_preference/results/judge_alignment/judge_table.csv` (`tau2_hat`, `cost_normalized`, `time_mean_sec`) |
-| Figure D.3 | Correlations of the human outcome and the ten judges | `human_preference/arena_figures.py` | `human_preference/results/figures/arena_correlation.pdf` |
-| Figure D.4 | Oracle reductions against the budget | `human_preference/arena_oracle.py`, then `arena_figures.py` | `human_preference/results/figures/arena_oracle_reduction.pdf` |
+| Figure D.4 | Correlations of the human outcome and the ten judges | `human_preference/arena_figures.py` | `human_preference/results/figures/arena_correlation.pdf` |
+| Figure D.5 | Oracle reductions against the budget | `human_preference/arena_oracle.py`, then `arena_figures.py` | `human_preference/results/figures/arena_oracle_reduction.pdf` |
 | Table D.2 | Chatbot Arena results by pilot size | `human_preference/arena_metrics.py` | `human_preference/results/metrics.csv` (`share_rmse`, `share_width`, `coverage_pool`; oracle row: `oracle_share`) |
-| Figure D.5 | Chatbot Arena allocations at B = 1500 | `human_preference/arena_allocation.py`, then `arena_figures.py` | `human_preference/results/figures/arena_combined_allocation.pdf` |
+| Figure D.6 | Chatbot Arena allocations at B = 1500 | `human_preference/arena_allocation.py`, then `arena_figures.py` | `human_preference/results/figures/arena_combined_allocation.pdf` |
 | Table E.1 | HumanEval+ partial evaluators | `functional_correctness/humaneval_tables.py` | `functional_correctness/results/tableE1_evaluators.csv` |
 | Table E.2 | Stratum-level oracle constants for HumanEval+ | `functional_correctness/humaneval_oracle.py` | `functional_correctness/results/oracle_strata.csv` and `oracle.csv` |
 | Table E.3 | HumanEval+ results by pilot size | `functional_correctness/humaneval_metrics.py` | `functional_correctness/results/metrics.csv` (`share_rmse`, `share_width`, `coverage_pool`; oracle row: `oracle_share`) |
@@ -70,7 +69,7 @@ and the ratio 0.5327 with free partial evaluators are in `functional_correctness
 shrinkage comparison in Appendix E (ratios 1.20, 0.90 and 0.89 at pilot size 200) is in
 `functional_correctness/results/shrinkage.csv` (`humaneval_shrinkage.py`).
 
-Figure 4, Table E.3, Figure E.1, Figure D.2 and Table D.2 summarize the Monte Carlo runs stored in
+Figure 2, Table E.3, Figure E.1, Figure D.3 and Table D.2 summarize the Monte Carlo runs stored in
 `results/pilot<n>/` (summary files of the paper's runs); the full `run.sh` of an experiment regenerates
 those runs (below). All other outputs are computed directly from the data.
 
@@ -80,7 +79,7 @@ Every `run.sh` can be called from any directory.
 
 | Command | What it does | Time |
 |---|---|---|
-| `bash win_rates/run.sh` | Figure 1 | under a minute after the download |
+| `bash win_rates/run.sh` | Figure D.1 | under a minute after the download |
 | `bash functional_correctness/run.sh` | three Monte Carlo runs (pilot sizes 800, 400, 200), then oracle, metrics, figures, tables and the shrinkage comparison | 2 hours with 60 workers |
 | `bash functional_correctness/run.sh results` | everything after the Monte Carlo runs, from `results/pilot<n>/` | 3 minutes |
 | `bash human_preference/run.sh` | four Monte Carlo runs (pilot sizes 50, 100, 200, 400), then oracle, allocation, metrics, figures and judge alignment | 1.5 hours with 60 workers |
@@ -108,21 +107,21 @@ options.
 ├── data/
 │   ├── chatbot_arena/              Chatbot Arena comparisons with the votes of ten LLM judges
 │   └── humaneval_plus/             HumanEval+ completions with full and partial evaluator outcomes
-├── win_rates/                      Figure 1
+├── win_rates/                      Figure D.1
 │   └── arena_pair_ci.py
-├── human_preference/               Chatbot Arena experiment: Figure 2, Figures D.1-D.5, Tables D.1-D.2
+├── human_preference/               Chatbot Arena experiment: Figures D.2-D.6, Tables D.1-D.2
 │   ├── arena_data.py               data loading, strata, covariance estimation, OMPPI route search
 │   ├── arena_experiment.py         Monte Carlo runs (Classical, VectorPPI++, MultiPPI, OMPPI)
 │   ├── arena_oracle.py             designs under the population covariance
 │   ├── arena_allocation.py         allocations at the largest budget
 │   ├── arena_metrics.py            checks and Table D.2
-│   ├── arena_figures.py            Figures D.2-D.5 and the values of Figure 2
-│   └── judge_alignment.py          Figure D.1 and Table D.1
-├── functional_correctness/         HumanEval+ experiment: Table 1, Figure 4, Tables E.1-E.3, Figure E.1
+│   ├── arena_figures.py            Figures D.3-D.6
+│   └── judge_alignment.py          Figure D.2 and Table D.1
+├── functional_correctness/         HumanEval+ experiment: Figure 2, Table 1, Tables E.1-E.3, Figure E.1
 │   ├── humaneval_experiment.py     Monte Carlo runs (Classical, VectorPPI++, MultiPPI, OMPPI)
 │   ├── humaneval_oracle.py         designs under the population covariance (Table E.2)
 │   ├── humaneval_metrics.py        checks and Table E.3
-│   ├── humaneval_figures.py        Figure 4 and Figure E.1
+│   ├── humaneval_figures.py        Figure 2 and Figure E.1
 │   ├── humaneval_tables.py         Table 1 and Table E.1
 │   ├── humaneval_shrinkage.py      effect of covariance shrinkage (Appendix E)
 │   └── generate_humaneval_data.py  builds data/humaneval_plus (optional; GPU)
@@ -150,7 +149,7 @@ options.
   generated code, so run it in a container); adding
   `--samples-jsonl data/humaneval_plus/samples_generated.jsonl` re-evaluates the stored completions without
   a GPU. Its output goes to `functional_correctness/results/generated_data/`.
-- Figure 1 uses `lmarena-ai/arena-human-preference-55k` directly.
+- Figure D.1 uses `lmarena-ai/arena-human-preference-55k` directly.
 
 Please follow the terms of use of Chatbot Arena, HumanEval+ (EvalPlus) and the models whose outputs the
 data contain.

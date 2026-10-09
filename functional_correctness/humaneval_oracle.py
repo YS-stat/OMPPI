@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Oracle constants for HumanEval+ (Table E.2; oracle values in Figure 4 and Table E.3).
+"""Oracle constants for HumanEval+ (Table E.2; oracle values in Figure 2 and Table E.3).
 
 For each prompt-length stratum, Sigma is the covariance of (Y, F) over all rows of the stratum. Every
 design family below has variance Q_{m,h}^2 / B_h at stratum budget B_h; with the optimal split

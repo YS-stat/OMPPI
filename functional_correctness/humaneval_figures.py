@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Figures for the HumanEval+ experiment, written to results/figures/.
 
-humaneval_combined_share.pdf (Figure 4)
+humaneval_combined_share.pdf (Figure 2)
   One row per pilot size (200, 400, 800). Columns: coverage | RMSE | CI width. RMSE and CI width are
   shown as reduction / oracle reduction, where the reduction of a design is 1 - (its RMSE or CI width)
   / (that of Classical) and the oracle is the best linear unbiased design over all 63 query blocks
@@ -79,7 +79,7 @@ def label_rows(fig, rows):
 
 
 # ============================================================
-# Coverage, RMSE and CI width (Figure 4)
+# Coverage, RMSE and CI width (Figure 2)
 # ============================================================
 def smooth(y):
     return pd.Series(np.asarray(y, float)).rolling(SMOOTH, min_periods=1, center=True).mean().to_numpy()
